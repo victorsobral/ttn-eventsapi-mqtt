@@ -99,26 +99,39 @@ while True:
 					data_dict_up_receive.update({
 						"raw_payload_size_bytes": int(raw_payload_size_bytes),
 						"rssi_dbm": int(message["result"]["data"]["message"]["rx_metadata"][0]["rssi"]),
-						"lora_f_cnt":int(message["result"]["data"]["message"]["payload"]["mac_payload"]["f_hdr"]["f_cnt"]),
+						"rssi": int(message["result"]["data"]["message"]["rx_metadata"][0]["rssi"]),
 						"bandwidth_hz":int(message["result"]["data"]["message"]["settings"]["data_rate"]["lora"]["bandwidth"]),
 						"spreading_factor":int(message["result"]["data"]["message"]["settings"]["data_rate"]["lora"]["spreading_factor"]),
 						"frequency_hz":int(message["result"]["data"]["message"]["settings"]["frequency"]),
 						"received_at":str(message["result"]["data"]["message"]["rx_metadata"][0]["received_at"]),
-						"lora_dev_addr":str(message["result"]["data"]["message"]["payload"]["mac_payload"]["f_hdr"]["dev_addr"])
+						"latitude_degrees": float(message["result"]["data"]["message"]["rx_metadata"][0]["location"]["latitude"]),
+						"longitude_degrees": float(message["result"]["data"]["message"]["rx_metadata"][0]["location"]["longitude"]),
+						"altitude_m": float(message["result"]["data"]["message"]["rx_metadata"][0]["location"]["altitude"])
 		            })
 
+					if "mac_payload" in message["result"]["data"]["message"]["payload"]:
+						if "f_cnt" in message["result"]["data"]["message"]["payload"]["mac_payload"]["f_hdr"]:
+							data_dict_up_receive.update({"lora_f_cnt":int(message["result"]["data"]["message"]["payload"]["mac_payload"]["f_hdr"]["f_cnt"])})
+						else:
+							if "lora_f_cnt" in data_dict_up_receive:
+								del data_dict_up_receive["lora_f_cnt"]
+						if "dev_addr" in message["result"]["data"]["message"]["payload"]["mac_payload"]["f_hdr"]:
+							data_dict_up_receive.update({"lora_dev_addr":str(message["result"]["data"]["message"]["payload"]["mac_payload"]["f_hdr"]["dev_addr"])})
+						else:
+							if "lora_dev_addr" in data_dict_up_receive:
+								del data_dict_up_receive["lora_dev_addr"]
+
 					if "snr" in message["result"]["data"]["message"]["rx_metadata"][0]:
-						data_dict_up_receive.update({"snr_db": int(message["result"]["data"]["message"]["rx_metadata"][0]["snr"])})
+						data_dict_up_receive.update({"snr_db": int(message["result"]["data"]["message"]["rx_metadata"][0]["snr"]),
+							"snr": int(message["result"]["data"]["message"]["rx_metadata"][0]["snr"])})
 					else:
 						if "snr_db" in data_dict_up_receive:
 							del data_dict_up_receive["snr_db"]
+							del data_dict_up_receive["snr"]
 
 					data_dict_up_receive["_meta"].update({
 		            	"device_id" : message["result"]["identifiers"][0]["gateway_ids"]["eui"], 
 						"band_id" : message["result"]["data"]["band_id"],
-						"latitude": message["result"]["data"]["message"]["rx_metadata"][0]["location"]["latitude"],
-						"longitude": message["result"]["data"]["message"]["rx_metadata"][0]["location"]["longitude"],
-						"altitude": message["result"]["data"]["message"]["rx_metadata"][0]["location"]["altitude"],
 						"receiver": "ttn-eventsapi-mqtt"
 					})
 
