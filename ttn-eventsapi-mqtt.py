@@ -158,6 +158,3 @@ while True:
 mqtt_client.loop_stop()
 mqtt_client.disconnect()
 print('Client disconnected from the broker. No longer sending any data.')
-
-
-mqtt_connect()
