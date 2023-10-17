@@ -83,7 +83,8 @@ while True:
 						"tx_acknowledgment_count": int(message["result"]["data"]["tx_acknowledgment_count"]),
 						"downlink_utilization_band1": float(message["result"]["data"]["sub_bands"][1]["downlink_utilization"]),
 
-						"_meta": {"device_id": str(message["result"]["identifiers"][0]["gateway_ids"]["eui"]),
+						"_meta": {"received_time": str(message["result"]["time"]),
+								  "device_id": str(message["result"]["identifiers"][0]["gateway_ids"]["eui"]),
 						          "platform": str(message["result"]["data"]["last_status"]["versions"]["platform"]),
 						          "min_frequency_band1": int(message["result"]["data"]["sub_bands"][1]["min_frequency"]),
 						          "max_frequency_band1": int(message["result"]["data"]["sub_bands"][1]["max_frequency"]),
@@ -92,6 +93,7 @@ while True:
 
 
 					print(json.dumps(data_dict_gs_stats, indent=2))
+					status = mqtt_client.publish(MQTT_TOPIC_NAME, json.dumps(data_dict_gs_stats)) 
 
 				if message["result"]["name"] == "gs.up.receive":
 					raw_payload = message["result"]["data"]["message"]["raw_payload"]
@@ -103,7 +105,6 @@ while True:
 						"bandwidth_hz":int(message["result"]["data"]["message"]["settings"]["data_rate"]["lora"]["bandwidth"]),
 						"spreading_factor":int(message["result"]["data"]["message"]["settings"]["data_rate"]["lora"]["spreading_factor"]),
 						"frequency_hz":int(message["result"]["data"]["message"]["settings"]["frequency"]),
-						"received_at":str(message["result"]["data"]["message"]["rx_metadata"][0]["received_at"]),
 						"latitude_degrees": float(message["result"]["data"]["message"]["rx_metadata"][0]["location"]["latitude"]),
 						"longitude_degrees": float(message["result"]["data"]["message"]["rx_metadata"][0]["location"]["longitude"]),
 						"altitude_m": float(message["result"]["data"]["message"]["rx_metadata"][0]["location"]["altitude"])
@@ -130,14 +131,16 @@ while True:
 							del data_dict_up_receive["snr"]
 
 					data_dict_up_receive["_meta"].update({
-		            	"device_id" : message["result"]["identifiers"][0]["gateway_ids"]["eui"], 
-						"band_id" : message["result"]["data"]["band_id"],
+						"received_time": str(message["result"]["data"]["message"]["rx_metadata"][0]["received_at"]),
+		            	"device_id" : str(message["result"]["identifiers"][0]["gateway_ids"]["eui"]), 
+						"band_id" : str(message["result"]["data"]["band_id"]),
 						"receiver": "ttn-eventsapi-mqtt"
 					})
 
 					print(json.dumps(data_dict_up_receive, indent=2))
+					status = mqtt_client.publish(MQTT_TOPIC_NAME, json.dumps(data_dict_up_receive)) 
 
-		# data_dict.update({"value": value})      # update our dictionary's value with the newly generated one
+
 		# status = mqtt_client.publish(MQTT_TOPIC_NAME, json.dumps(data_dict))    # publish the data (we use json.dumps(dict) because published messages have to be strings)
         # This commented block below is used to check if the message was sent successfully. It is a one time operation, but you need to 
         # uncomment the verify variable at the top of the code. It is not mandatory. 
