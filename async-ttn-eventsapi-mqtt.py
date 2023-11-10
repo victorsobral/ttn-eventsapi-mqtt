@@ -60,29 +60,51 @@ def create_pkt_stats(msg):
     pkt = {"_meta": {"receiver": "ttn-eventsapi-mqtt"}}
 
     # Data
-    pkt["uplink_count"] = int(msg["result"]["data"]["uplink_count"])
-    pkt["downlink_count"] = int(msg["result"]["data"]["downlink_count"])
-    pkt["tx_acknowledgment_count"] = int(
-        msg["result"]["data"]["tx_acknowledgment_count"]
-    )
-    if "downlink_utilization" in msg["result"]["data"]["sub_bands"][1]:
+    try:
+        pkt["uplink_count"] = int(msg["result"]["data"]["uplink_count"])
+    except:
+        pass
+    try:
+        pkt["downlink_count"] = int(msg["result"]["data"]["downlink_count"])
+    except:
+        pass
+    try:
+        pkt["tx_acknowledgment_count"] = int(
+            msg["result"]["data"]["tx_acknowledgment_count"]
+        )
+    except:
+        pass
+    try:
         pkt["downlink_utilization_band1"] = float(
             msg["result"]["data"]["sub_bands"][1]["downlink_utilization"]
         )
+    except:
+        pass
 
     # Metadata
+
+    # `received_time` and `device_id` are required, so we are ok to fail if
+    # these are missing.
     pkt["_meta"]["received_time"] = str(msg["result"]["time"])
     pkt["_meta"]["device_id"] = msg["result"]["identifiers"][0]["gateway_ids"]["eui"]
-    if "platform" in msg["result"]["data"]["last_status"]["versions"]:
+    try:
         pkt["_meta"]["platform"] = msg["result"]["data"]["last_status"]["versions"][
             "platform"
         ]
-    pkt["_meta"]["min_frequency_band1"] = int(
-        msg["result"]["data"]["sub_bands"][1]["min_frequency"]
-    )
-    pkt["_meta"]["max_frequency_band1"] = int(
-        msg["result"]["data"]["sub_bands"][1]["max_frequency"]
-    )
+    except:
+        pass
+    try:
+        pkt["_meta"]["min_frequency_band1"] = int(
+            msg["result"]["data"]["sub_bands"][1]["min_frequency"]
+        )
+    except:
+        pass
+    try:
+        pkt["_meta"]["max_frequency_band1"] = int(
+            msg["result"]["data"]["sub_bands"][1]["max_frequency"]
+        )
+    except:
+        pass
 
     return pkt
 
@@ -99,31 +121,65 @@ def create_pkt_receive(rst):
     ) * 3
 
     pkt["raw_payload_size_bytes"] = int(raw_payload_size_bytes)
-    pkt["rssi_dbm"] = int(msg["rx_metadata"][0]["rssi"])
-    pkt["rssi"] = int(msg["rx_metadata"][0]["rssi"])
-    pkt["bandwidth_hz"] = int(msg["settings"]["data_rate"]["lora"]["bandwidth"])
-    pkt["spreading_factor"] = int(
-        msg["settings"]["data_rate"]["lora"]["spreading_factor"]
-    )
-    pkt["frequency_hz"] = int(msg["settings"]["frequency"])
-    pkt["latitude_degrees"] = float(msg["rx_metadata"][0]["location"]["latitude"])
-    pkt["longitude_degrees"] = float(msg["rx_metadata"][0]["location"]["longitude"])
-    pkt["altitude_m"] = float(msg["rx_metadata"][0]["location"]["altitude"])
-
-    if "mac_payload" in msg["payload"]:
-        if "f_cnt" in msg["payload"]["mac_payload"]["f_hdr"]:
-            pkt["lora_f_cnt"] = int(msg["payload"]["mac_payload"]["f_hdr"]["f_cnt"])
-
-        if "dev_addr" in msg["payload"]["mac_payload"]["f_hdr"]:
-            pkt["lora_dev_addr"] = msg["payload"]["mac_payload"]["f_hdr"]["dev_addr"]
-
-    if "snr" in msg["rx_metadata"][0]:
+    try:
+        pkt["rssi_dbm"] = int(msg["rx_metadata"][0]["rssi"])
+    except:
+        pass
+    try:
+        pkt["rssi"] = int(msg["rx_metadata"][0]["rssi"])
+    except:
+        pass
+    try:
+        pkt["bandwidth_hz"] = int(msg["settings"]["data_rate"]["lora"]["bandwidth"])
+    except:
+        pass
+    try:
+        pkt["spreading_factor"] = int(
+            msg["settings"]["data_rate"]["lora"]["spreading_factor"]
+        )
+    except:
+        pass
+    try:
+        pkt["frequency_hz"] = int(msg["settings"]["frequency"])
+    except:
+        pass
+    try:
+        pkt["latitude_degrees"] = float(msg["rx_metadata"][0]["location"]["latitude"])
+    except:
+        pass
+    try:
+        pkt["longitude_degrees"] = float(msg["rx_metadata"][0]["location"]["longitude"])
+    except:
+        pass
+    try:
+        pkt["altitude_m"] = float(msg["rx_metadata"][0]["location"]["altitude"])
+    except:
+        pass
+    try:
+        pkt["lora_f_cnt"] = int(msg["payload"]["mac_payload"]["f_hdr"]["f_cnt"])
+    except:
+        pass
+    try:
+        pkt["lora_dev_addr"] = msg["payload"]["mac_payload"]["f_hdr"]["dev_addr"]
+    except:
+        pass
+    try:
         pkt["snr_db"] = int(msg["rx_metadata"][0]["snr"])
+    except:
+        pass
+    try:
         pkt["snr"] = int(msg["rx_metadata"][0]["snr"])
+    except:
+        pass
+
+    # Metadata
 
     pkt["_meta"]["received_time"] = msg["rx_metadata"][0]["received_at"]
     pkt["_meta"]["device_id"] = rst["result"]["identifiers"][0]["gateway_ids"]["eui"]
-    pkt["_meta"]["band_id"] = rst["result"]["data"]["band_id"]
+    try:
+        pkt["_meta"]["band_id"] = rst["result"]["data"]["band_id"]
+    except:
+        pass
 
     return pkt
 
@@ -173,6 +229,8 @@ async def main():
     for section in config.sections():
         if section.startswith("gateway"):
             gateways.append(config[section])
+    for gateway in gateways:
+        print("Using gateway: {} ({})".format(gateway["name"], gateway["id"]))
 
     # Connect to MQTT broker
     print("Connecting to MQTT broker...")
