@@ -197,7 +197,7 @@ async def gateway_info_stream(queue, ttn_server, gateway_id, ttn_key):
             data='{{"identifiers":[{{"gateway_ids":{{"gateway_id":"{}"}}}}]}}'.format(
                 gateway_id
             ),
-            timeout=None,
+            timeout=600.00,
         ) as r:
             async for line in r.aiter_text():
                 try:
