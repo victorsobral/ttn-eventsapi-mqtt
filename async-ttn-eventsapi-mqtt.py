@@ -210,6 +210,8 @@ async def gateway_info_stream(queue, ttn_server, gateway_id, ttn_key):
 
                 except KeyboardInterrupt:
                     print("<< User stream interrupt >>")
+                except TimeoutError:
+                    sys.exit("Timeout error - TTN events API was idle for longer than 10 minutes.") 
                 except Exception as e:
                     print("<< error handling TTN message >>")
                     print(e)
@@ -257,10 +259,15 @@ async def main():
 
     # Start mqtt main loop
     while True:
-        message = await queue.get()
-        status = client.publish(config["mqtt"]["topic"], json.dumps(message))
-        # print(json.dumps(message))
-        queue.task_done()
+        try:
+            async with asyncio.timeout(600):
+            message = await queue.get()
+            status = client.publish(config["mqtt"]["topic"], json.dumps(message))
+            # print(json.dumps(message))
+            queue.task_done()
+        except TimeoutError:
+            sys.exit("Timeout error - ttn packet queue empty for longer than 10 minutes.")
+
 
 
 asyncio.run(main())
