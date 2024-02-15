@@ -260,13 +260,13 @@ async def main():
     # Start mqtt main loop
     while True:
         try:
-            async with asyncio.timeout(600):
-                message = await queue.get()
-                status = client.publish(config["mqtt"]["topic"], json.dumps(message))
-                # print(json.dumps(message))
-                queue.task_done()
+            message = await asyncio.wait_for(queue.get(), 600)
+            status = client.publish(config["mqtt"]["topic"], json.dumps(message))
+            # print(json.dumps(message))
+            queue.task_done()
         except TimeoutError:
             sys.exit("Timeout error - ttn packet queue empty for longer than 10 minutes.")
+
 
 
 
